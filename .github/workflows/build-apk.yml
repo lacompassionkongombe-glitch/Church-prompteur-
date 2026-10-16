@@ -1,0 +1,47 @@
+name: Build Church Prompteur Pro APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'church_prompteur_pro_source.zip'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: |
+          unzip -q church_prompteur_pro_source.zip -d extracted
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: extracted/church_prompteur_pro
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: extracted/church_prompteur_pro
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Church-Prompteur-Pro-APK
+          path: extracted/church_prompteur_pro/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
